@@ -1,11 +1,19 @@
-const { AuthenticationError } = require('apollo-server-express');
+const { AuthenticationError } = require("apollo-server-express");
 const { User } = require("../models");
-const { signToken } = require('../utils/auth');
+const { signToken } = require("../utils/auth");
 
 const resolvers = {
   Query: {
-    user: async (parent, { username }) => {
-      return User.findOne({ username }).populate("books");
+    me: async (parent, args, context) => {
+      console.log('Looking into myself')
+      if (context.user) {
+        const userData = await User.findOne({ _id: context.user._id }).select(
+          "-__v -password"
+        );
+        return userData;
+      }
+
+      throw new AuthenticationError("Please log in!");
     },
   },
   Mutation: {
@@ -31,45 +39,36 @@ const resolvers = {
 
       return { token, user };
     },
-    // addBook: async (parent, { userId, bookId, authors, description, title, image, link }) => {
-    //     return Thought.findOneAndUpdate(
-    //       { _id: thoughtId },
-    //       {
-    //         $addToSet: { comments: { commentText, commentAuthor } },
-    //       },
-    //       {
-    //         new: true,
-    //         runValidators: true,
-    //       }
-    //     );
-    //   },
+    saveBook: async (parent, { input }, context) => {
+      console.log(input);
+      if (context.user) {
+        const user = await User.findByIdAndUpdate(
+          { _id: context.user._id },
+          { $addToSet: { savedBooks: input } },
+          { new: true, runValidators: true }
+        );
+
+        return user;
+      }
+
+      throw new AuthenticationError("Please log in!");
+    },
+    removeBook: async (parent, args, context) => {
+      if (context.user) {
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $pull: { savedBooks: { bookId: args.bookId } } },
+          { new: true }
+        );
+
+        return updatedUser;
+      }
+
+      throw new AuthenticationError("Please log in!");
+    },
   },
 };
 
-// async saveBook({ user, body }, res) {
-//     console.log(user);
-//     try {
-//       const updatedUser = await User.findOneAndUpdate(
-//         { _id: user._id },
-//         { $addToSet: { savedBooks: body } },
-//         { new: true, runValidators: true }
-//       );
-//       return res.json(updatedUser);
-//     } catch (err) {
-//       console.log(err);
-//       return res.status(400).json(err);
-//     }
-//   },
-
-// saveBook,
-// deleteBook,
-
-// router.route('/').post(createUser).put(authMiddleware, saveBook);
-
-// router.route('/login').post(login);
-
-// router.route('/me').get(authMiddleware, getSingleUser);
-
-// router.route('/books/:bookId').delete(authMiddleware, deleteBook);
+// async save
 
 module.exports = resolvers;
