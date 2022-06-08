@@ -16,7 +16,7 @@ const SearchBooks = () => {
   // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
 
-  const [saveBook, {error}] = useMutation(SAVE_BOOK)
+  const [saveBook, { error }] = useMutation(SAVE_BOOK)
 
   // set up useEffect hook to save `savedBookIds` list to localStorage on component unmount
   // learn more here: https://reactjs.org/docs/hooks-effect.html#effects-with-cleanup
@@ -68,6 +68,7 @@ const SearchBooks = () => {
       return false;
     }
 
+    console.log(bookToSave)
     try {
       const { data } = await saveBook({
         variables: {...bookToSave},

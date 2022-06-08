@@ -5,6 +5,7 @@ import {
   ApolloProvider,
   createHttpLink,
 } from '@apollo/client';
+import { ApolloLink, from } from 'apollo-link';
 import { setContext } from '@apollo/client/link/context';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
@@ -21,13 +22,13 @@ const httpLink = createHttpLink({
 const authLink = setContext((_, { headers }) => {
   // get the authentication token from local storage if it exists
   const token = localStorage.getItem('id_token');
+  console.log('getting token')
+  console.log(token)
+  console.log(headers)
+  let newContext = { headers: { ...headers, authorization: token? `Bearer ${token}` : '' }}
+  console.log(newContext)
   // return the headers to the context so httpLink can read them
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : '',
-    },
-  };
+  return newContext
 });
 
 const client = new ApolloClient({

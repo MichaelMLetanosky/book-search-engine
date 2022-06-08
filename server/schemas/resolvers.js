@@ -5,12 +5,11 @@ const { signToken } = require("../utils/auth");
 const resolvers = {
   Query: {
     me: async (parent, args, context) => {
-      console.log('Looking into myself')
+      console.log('looking into myself')
+      console.log(args)
+      console.log(context)
       if (context.user) {
-        const userData = await User.findOne({ _id: context.user._id }).select(
-          "-__v -password"
-        );
-        return userData;
+        return User.findOne({ _id: context.user._id });
       }
 
       throw new AuthenticationError("Please log in!");
@@ -39,12 +38,14 @@ const resolvers = {
 
       return { token, user };
     },
-    saveBook: async (parent, { input }, context) => {
-      console.log(input);
+    saveBook: async (parent, { args }, context) => {
+      console.log('saving book')
+      console.log(context)
+      console.log(args)
       if (context.user) {
         const user = await User.findByIdAndUpdate(
           { _id: context.user._id },
-          { $addToSet: { savedBooks: input } },
+          { $addToSet: { savedBooks: args } },
           { new: true, runValidators: true }
         );
 
