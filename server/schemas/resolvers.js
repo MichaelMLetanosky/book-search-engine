@@ -6,10 +6,9 @@ const resolvers = {
   Query: {
     me: async (parent, args, context) => {
       console.log('looking into myself')
-      console.log(args)
-      console.log(context)
       if (context.user) {
-        return User.findOne({ _id: context.user._id });
+        console.log(context.user)
+        return User.findOne({ _id: context.user._id }).populate('savedBooks');
       }
 
       throw new AuthenticationError("Please log in!");
@@ -38,9 +37,8 @@ const resolvers = {
 
       return { token, user };
     },
-    saveBook: async (parent, { args }, context) => {
+    saveBook: async (parent, args, context) => {
       console.log('saving book')
-      console.log(context)
       console.log(args)
       if (context.user) {
         const user = await User.findByIdAndUpdate(
@@ -48,7 +46,7 @@ const resolvers = {
           { $addToSet: { savedBooks: args } },
           { new: true, runValidators: true }
         );
-
+          console.log(user)
         return user;
       }
 
